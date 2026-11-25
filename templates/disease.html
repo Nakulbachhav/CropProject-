@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Disease Detection - AgriSathi{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-sky-50 via-green-50 to-emerald-50 py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-ink mb-4">
+                Disease Detection
+            </h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                Upload a photo of your plant to identify diseases and get treatment recommendations.
+            </p>
+        </div>
+        
+        <!-- Upload Area -->
+        <div class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-8 md:p-12">
+            <!-- Upload Zone -->
+            <div id="upload-zone" class="border-2 border-dashed border-gray-300 rounded-2xl p-12 text-center hover:border-leaf transition-colors cursor-pointer">
+                <div class="space-y-4">
+                    <div class="w-16 h-16 bg-gradient-to-br from-leaf to-green-600 rounded-full flex items-center justify-center mx-auto">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-ink">Upload Plant Image</h3>
+                    <p class="text-gray-600">Drag and drop your image here, or click to browse</p>
+                    <input type="file" id="image-input" accept="image/*" class="hidden">
+                    <button id="upload-btn" class="bg-leaf text-white px-6 py-2 rounded-xl hover:bg-green-600 transition-colors">
+                        Choose File
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Image Preview -->
+            <div id="image-preview" class="hidden mt-8">
+                <div class="relative">
+                    <img id="preview-img" class="w-full max-w-md mx-auto rounded-2xl shadow-lg" alt="Plant preview">
+                    <button id="remove-image" class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+                <button id="analyze-btn" class="mt-4 bg-gradient-to-r from-leaf to-green-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 transition-all">
+                    Analyze Plant
+                </button>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="loading-state" class="hidden text-center py-8">
+                <div class="inline-flex items-center space-x-2">
+                    <div class="w-4 h-4 bg-leaf rounded-full animate-bounce"></div>
+                    <div class="w-4 h-4 bg-leaf rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                    <div class="w-4 h-4 bg-leaf rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                </div>
+                <p class="text-lg text-gray-600 mt-4">Analyzing your plant image...</p>
+            </div>
+            
+            <!-- Results -->
+            <div id="results" class="hidden mt-8">
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6">
+                    <!-- Plant Identification -->
+                    <div class="mb-6">
+                        <h3 class="text-xl font-semibold text-ink mb-3">Plant Identification</h3>
+                        <div class="bg-white rounded-xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span id="plant-name" class="text-lg font-medium text-ink">Plant Name</span>
+                                <span id="confidence" class="text-sm text-gray-600">Confidence</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="confidence-bar" class="bg-gradient-to-r from-leaf to-green-600 h-2 rounded-full transition-all duration-1000"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Marathi Response -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-ink mb-2">मराठी विश्लेषण:</h3>
+                        <p id="marathi-analysis" class="text-lg text-ink leading-relaxed"></p>
+                    </div>
+                    
+                    <!-- English Response -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-ink mb-2">English Analysis:</h3>
+                        <p id="english-analysis" class="text-base text-gray-600 leading-relaxed"></p>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button id="new-analysis-btn" class="flex-1 bg-leaf text-white px-6 py-3 rounded-xl hover:bg-green-600 transition-colors">
+                            Analyze Another Plant
+                        </button>
+                        <button id="chat-about-btn" class="flex-1 border-2 border-leaf text-leaf px-6 py-3 rounded-xl hover:bg-leaf hover:text-white transition-colors">
+                            Chat About This Plant
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Error State -->
+            <div id="error-state" class="hidden text-center py-8">
+                <div class="text-red-500 mb-4">
+                    <svg class="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <p id="error-message" class="text-lg text-red-600 mb-4"></p>
+                <button id="retry-btn" class="bg-leaf text-white px-6 py-2 rounded-xl hover:bg-green-600 transition-colors">
+                    Try Again
+                </button>
+            </div>
+        </div>
+        
+        <!-- Tips Section -->
+        <div class="mt-12">
+            <h3 class="text-2xl font-bold text-ink mb-6 text-center">Tips for Better Results</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <h4 class="font-semibold text-ink mb-2">Clear Photos</h4>
+                    <p class="text-gray-600 text-sm">Take clear, well-lit photos of the affected plant parts.</p>
+                </div>
+                
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <h4 class="font-semibold text-ink mb-2">Multiple Angles</h4>
+                    <p class="text-gray-600 text-sm">Include photos from different angles showing leaves, stems, and roots.</p>
+                </div>
+                
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <h4 class="font-semibold text-ink mb-2">Close-up Details</h4>
+                    <p class="text-gray-600 text-sm">Focus on disease symptoms like spots, discoloration, or wilting.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/disease.js') }}"></script>
+{% endblock %}
+
+

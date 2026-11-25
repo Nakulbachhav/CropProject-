@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Voice Chatbot - AgriSathi{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-sky-50 via-green-50 to-emerald-50 py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-ink mb-4">
+                Voice Chatbot
+            </h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                Ask your farming questions in Marathi or English. Get instant AI-powered advice with voice responses.
+            </p>
+        </div>
+        
+        <!-- Chat Interface -->
+        <div class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-8 md:p-12">
+            <!-- Voice Recording Area -->
+            <div class="text-center mb-8">
+                <div id="voice-container" class="relative">
+                    <!-- Record Button -->
+                    <button id="record-btn" class="group w-24 h-24 bg-gradient-to-br from-leaf to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                        <svg id="mic-icon" class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4z"/>
+                            <path d="M5.5 9.643a.75.75 0 00-1.5 0V10c0 3.06 2.29 5.64 5.25 6.24V17h3v-.76C15.71 15.64 18 13.06 18 10v-.357a.75.75 0 00-1.5 0V10c0 2.35-1.73 4.3-4 4.65V15h-1v-.35C8.73 14.3 7 12.35 7 10v-.357z"/>
+                        </svg>
+                    </button>
+                    
+                    <!-- Status Text -->
+                    <p id="status-text" class="text-lg text-gray-600 mb-4">Click and hold to record your question</p>
+                    
+                    <!-- Timer -->
+                    <div id="timer" class="text-2xl font-bold text-leaf hidden">00:00</div>
+                    
+                    <!-- Waveform Animation -->
+                    <div id="waveform" class="flex justify-center space-x-1 hidden">
+                        <div class="w-1 h-8 bg-leaf rounded-full animate-pulse"></div>
+                        <div class="w-1 h-6 bg-leaf rounded-full animate-pulse" style="animation-delay: 0.1s"></div>
+                        <div class="w-1 h-10 bg-leaf rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
+                        <div class="w-1 h-4 bg-leaf rounded-full animate-pulse" style="animation-delay: 0.3s"></div>
+                        <div class="w-1 h-8 bg-leaf rounded-full animate-pulse" style="animation-delay: 0.4s"></div>
+                    </div>
+                </div>
+                
+                <!-- Text Input Alternative -->
+                <div class="mt-8">
+                    <div class="relative">
+                        <textarea id="text-input" placeholder="Or type your question here..." 
+                                class="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-leaf focus:outline-none resize-none"
+                                rows="3"></textarea>
+                        <button id="send-text-btn" class="absolute bottom-3 right-3 bg-leaf text-white px-4 py-2 rounded-xl hover:bg-green-600 transition-colors">
+                            Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Response Area -->
+            <div id="response-area" class="hidden">
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 mb-6">
+                    <!-- Marathi Response -->
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-ink mb-2">मराठी उत्तर:</h3>
+                        <p id="marathi-response" class="text-lg text-ink leading-relaxed"></p>
+                    </div>
+                    
+                    <!-- English Response -->
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-ink mb-2">English Translation:</h3>
+                        <p id="english-response" class="text-base text-gray-600 leading-relaxed"></p>
+                    </div>
+                    
+                    <!-- Audio Player -->
+                    <div class="flex items-center space-x-4">
+                        <button id="play-audio-btn" class="flex items-center space-x-2 bg-leaf text-white px-4 py-2 rounded-xl hover:bg-green-600 transition-colors">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Play Answer</span>
+                        </button>
+                        
+                        <button id="new-question-btn" class="flex items-center space-x-2 border-2 border-leaf text-leaf px-4 py-2 rounded-xl hover:bg-leaf hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            <span>Ask Another</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="loading-state" class="hidden text-center py-8">
+                <div class="inline-flex items-center space-x-2">
+                    <div class="w-4 h-4 bg-leaf rounded-full animate-bounce"></div>
+                    <div class="w-4 h-4 bg-leaf rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                    <div class="w-4 h-4 bg-leaf rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                </div>
+                <p class="text-lg text-gray-600 mt-4">Processing your question...</p>
+            </div>
+            
+            <!-- Error State -->
+            <div id="error-state" class="hidden text-center py-8">
+                <div class="text-red-500 mb-4">
+                    <svg class="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <p id="error-message" class="text-lg text-red-600 mb-4"></p>
+                <button id="retry-btn" class="bg-leaf text-white px-6 py-2 rounded-xl hover:bg-green-600 transition-colors">
+                    Try Again
+                </button>
+            </div>
+        </div>
+        
+        <!-- Sample Questions -->
+        <div class="mt-12">
+            <h3 class="text-2xl font-bold text-ink mb-6 text-center">Sample Questions</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button class="sample-question bg-white/80 backdrop-blur-sm rounded-2xl p-4 text-left hover:bg-green-50 transition-colors border border-gray-200">
+                    <p class="font-medium text-ink">माझ्या भाताच्या पिकावर पिवळे डाग दिसत आहेत. काय करावे?</p>
+                    <p class="text-sm text-gray-600 mt-1">My rice crop has yellow spots. What should I do?</p>
+                </button>
+                
+                <button class="sample-question bg-white/80 backdrop-blur-sm rounded-2xl p-4 text-left hover:bg-green-50 transition-colors border border-gray-200">
+                    <p class="font-medium text-ink">कापसासाठी कोणते खत वापरावे?</p>
+                    <p class="text-sm text-gray-600 mt-1">What fertilizer should I use for cotton?</p>
+                </button>
+                
+                <button class="sample-question bg-white/80 backdrop-blur-sm rounded-2xl p-4 text-left hover:bg-green-50 transition-colors border border-gray-200">
+                    <p class="font-medium text-ink">हिवाळ्यात कोणती पिके लावावीत?</p>
+                    <p class="text-sm text-gray-600 mt-1">What crops should I plant in winter?</p>
+                </button>
+                
+                <button class="sample-question bg-white/80 backdrop-blur-sm rounded-2xl p-4 text-left hover:bg-green-50 transition-colors border border-gray-200">
+                    <p class="font-medium text-ink">पावसाच्या हंगामात काय काळजी घ्यावी?</p>
+                    <p class="text-sm text-gray-600 mt-1">What precautions should I take during monsoon?</p>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}
+
+
